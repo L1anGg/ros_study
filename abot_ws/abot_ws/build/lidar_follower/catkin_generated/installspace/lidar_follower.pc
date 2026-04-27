@@ -1,0 +1,8 @@
+prefix=/home/abot/abot_ws/install
+
+Name: lidar_follower
+Description: Description of lidar_follower
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: roscpp rospy std_msgs message_runtime

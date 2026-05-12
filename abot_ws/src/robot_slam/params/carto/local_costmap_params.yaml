@@ -1,0 +1,58 @@
+local_costmap:
+  # 局部地图的全局坐标系：使用里程计坐标系 odom
+  
+  global_frame: odom
+
+  # 机器人基座坐标系：机器人的中心基准坐标系
+
+  robot_base_frame: base_link
+
+  # 代价地图的**数据更新频率** (单位：Hz)
+  # 10Hz = 每秒更新10次激光/障碍物数据
+  update_frequency: 10.0
+
+  # 代价地图的**RViz可视化发布频率** (单位：Hz)
+  publish_frequency: 10.0
+
+  #  坐标变换超时容忍时间 (单位：秒)
+
+  transform_tolerance: 0.5
+
+  # 是否使用静态地图（全局地图）
+  # 局部地图是动态避障用的 → 必须为 false
+  static_map: false
+
+  # 是否开启**滚动窗口**
+  # true：地图会跟随机器人移动，只保留机器人周围的局部区域（核心功能）
+  rolling_window: true
+
+  # 局部地图的宽度 (单位：米)
+  width: 2.0
+  # 局部地图的高度 (单位：米)
+  height: 2.0
+
+  # 地图分辨率 (单位：米/像素)
+  # 0.02 = 精度非常高，适合小车避障
+  resolution: 0.05
+
+
+  plugins:
+    - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+
+    # 障碍物层配置（激光数据来源）
+  obstacle_layer:
+    observation_sources: scan  # 激光话题名（根据你的实际情况改，比如laser/scan）
+    scan:
+      data_type: LaserScan
+      topic: /scan_filtered  # 你的激光雷达话题（必须和实际一致）
+      marking: true
+      clearing: true
+      min_obstacle_height: 0.0
+      max_obstacle_height: 2.0
+
+  # 膨胀层：给墙体留安全距离（防卡墙）
+  inflation_layer:
+    inflation_radius: 0.08  # 障碍物膨胀0.05米（小车不会贴墙）
+    cost_scaling_factor: 2.5

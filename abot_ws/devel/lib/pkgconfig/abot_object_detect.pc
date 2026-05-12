@@ -1,0 +1,8 @@
+prefix=/home/l1ang/abot_ws/devel
+
+Name: abot_object_detect
+Description: Description of abot_object_detect
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

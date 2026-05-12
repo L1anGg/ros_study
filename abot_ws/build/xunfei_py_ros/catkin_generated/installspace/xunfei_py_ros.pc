@@ -1,0 +1,8 @@
+prefix=/home/l1ang/abot_ws/install
+
+Name: xunfei_py_ros
+Description: Description of xunfei_py_ros
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

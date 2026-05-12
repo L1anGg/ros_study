@@ -1,8 +1,0 @@
-prefix=/home/abot/abot_ws/install
-
-Name: track_tag
-Description: Description of track_tag
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

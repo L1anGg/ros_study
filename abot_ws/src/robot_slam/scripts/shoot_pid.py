@@ -71,6 +71,7 @@ target_id_rotating_mapping = {
     '4': 4,
     '5': 5
 }
+rotating_id = 0
 
 target_id_moving_mapping = {
     "六": 6,
@@ -80,6 +81,7 @@ target_id_moving_mapping = {
     '7': 7,
     '8': 8
 }
+moving_id = 0
 
 # 音频文件路径（预留语音播报功能）
 music_path="~/'07.mp3'"
@@ -775,8 +777,23 @@ if __name__ == "__main__":
             rate.sleep()
 
     def listen_callback(msg):
-        # 打印接收到的消息内容
-        rospy.loginfo("Received message: %s", msg.data)
+        global rotating_id, moving_id
+
+        text = msg.data.strip()
+        rospy.loginfo("Received voice command: %s", text)
+
+        for i in target_id_rotating_mapping:
+            if i in text:
+                rotating_id = target_id_rotating_mapping[i]
+                rospy.loginfo("Set rotating target ID to: %d", rotating_id)
+                break  # 找到匹配后退出循环，避免重复设置
+            
+        for i in target_id_moving_mapping:
+            if i in text:
+                moving_id = target_id_moving_mapping[i]
+                rospy.loginfo("Set moving target ID to: %d", moving_id)
+                return
+
 
     # 实例化导航类
     navi = navigation_demo()

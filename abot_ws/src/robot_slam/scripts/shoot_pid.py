@@ -60,28 +60,32 @@ import os
 
 # ---------------------- 全局变量定义 ----------------------
 target_id_rotating_mapping = {
+    "零":0,
     "一": 1,
     "二": 2,
     "三": 3,
     "四": 4,
     "五": 5,
+    '0':0,
     '1': 1,
     '2': 2,
     '3': 3,
     '4': 4,
     '5': 5
 }
-rotating_id = 0
+rotating_id = 10
 
 target_id_moving_mapping = {
+    "零":0,
     "六": 6,
     "七": 7,
     "八": 8,
+    '0':0,
     '6': 6,
     '7': 7,
     '8': 8
 }
-moving_id = 0
+moving_id = 10
 
 # 音频文件路径（预留语音播报功能）
 music_path="~/'07.mp3'"
@@ -731,20 +735,20 @@ if __name__ == "__main__":
     
     # 从ROS参数服务器获取导航目标点参数，设置默认值
     # 目标点X坐标列表，逗号分隔
-    goalListX = rospy.get_param('~goalListX', '1.1,1.1,1.1,0.02')
+    #goalListX = rospy.get_param('~goalListX', '1.1,1.1,1.1,0.02')
     # 目标点Y坐标列表，逗号分隔
-    goalListY = rospy.get_param('~goalListY', '-0.4, -1.62,-2.85,-3.2')
+    #goalListY = rospy.get_param('~goalListY', '-0.4, -1.62,-2.85,-3.2')
     # 目标点偏航角列表(角度制)，逗号分隔
-    goalListYaw = rospy.get_param('~goalListYaw', '0, 0, 0, 0')
+    #goalListYaw = rospy.get_param('~goalListYaw', '0, 0, 0, 0')
     
     # 解析参数，拼接成目标点列表，每个元素为[x, y, yaw]
-    goals = [[float(x), float(y), float(yaw)] for (x, y, yaw) in zip(goalListX.split(","),goalListY.split(","),goalListYaw.split(","))]
+    #goals = [[float(x), float(y), float(yaw)] for (x, y, yaw) in zip(goalListX.split(","),goalListY.split(","),goalListYaw.split(","))]
     
     # 等待用户输入确认，启动程序
     print('输入1开始: ')
     input = raw_input()
     # 打印解析后的目标点列表
-    print(goals)
+    #print(goals)
     
     # 设置循环频率1Hz
     r = rospy.Rate(1)
@@ -792,7 +796,7 @@ if __name__ == "__main__":
             if i in text:
                 moving_id = target_id_moving_mapping[i]
                 rospy.loginfo("Set moving target ID to: %d", moving_id)
-                return
+                break
         print('识别到旋转靶id:'+str(rotating_id)+', 识别到移动靶id:'+str(moving_id))
 
 

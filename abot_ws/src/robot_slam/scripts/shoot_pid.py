@@ -541,7 +541,7 @@ class navigation_demo:
         for marker in data.markers:
             #print(marker)
             # ---------------------- 状态1：1号靶位瞄准射击 ----------------------
-            if marker.id ==0 and case == 1 :
+            if marker.id == rotating_id and case == 1 :
                 # 获取AR码在机器人坐标系下的X、Y坐标（左右、前后）
                 ar_x_0 = marker.pose.pose.position.x
                 ar_y_0 = marker.pose.pose.position.y
@@ -587,7 +587,7 @@ class navigation_demo:
                     rospy.sleep(2)
             
             # ---------------------- 状态2：2号靶位瞄准射击 ----------------------
-            if marker.id ==0 and case == 2 :
+            if marker.id == moving_id and case == 2 :
                 # 获取AR码X轴坐标
                 ar_x_0 = marker.pose.pose.position.x
                 # 计算X轴偏移绝对值
@@ -793,6 +793,7 @@ if __name__ == "__main__":
                 moving_id = target_id_moving_mapping[i]
                 rospy.loginfo("Set moving target ID to: %d", moving_id)
                 return
+        print('识别到旋转靶id:'+str(rotating_id)+', 识别到移动靶id:'+str(moving_id))
 
 
     # 实例化导航类
@@ -802,9 +803,9 @@ if __name__ == "__main__":
     if input == '1':
         # 语音识别打击目标
         
-        #publish_audio()
-        #rospy.Subscriber("recognized_text", String, listen_callback)
-        #rospy.sleep(15)
+        publish_audio()
+        rospy.Subscriber("recognized_text", String, listen_callback)
+        rospy.sleep(10)
         
         # 打击环形靶
         print('pidgoto')

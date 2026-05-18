@@ -144,7 +144,7 @@ class DockPID:
         self.ki_x = 0.01   # x轴积分系数
         self.kd_x = 0.1    # x轴微分系数
         
-        self.kp_y = 0.4    # y轴比例系数
+        self.kp_y = 0.45    # y轴比例系数
         self.ki_y = 0.01   # y轴积分系数
         self.kd_y = 0.1    # y轴微分系数
         
@@ -228,7 +228,7 @@ class DockPID:
         
         return output, error, integral, current_time
 
-    def precise_dock(self, target_x, target_y, target_yaw_deg, timeout=7.0):
+    def precise_dock(self, target_x, target_y, target_yaw_deg, timeout=10.0):
         """
         核心停靠函数
         :param target_x: 目标x坐标（map坐标系）

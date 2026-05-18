@@ -59,6 +59,8 @@ rosrun robot_slam shoot_pid.py
 
 
 实车（删除小车滤波雷达话题发布节点和camera_info发布节点，实车自己发布）
+关闭虚拟时间  <param name="use_sim_time" value="false" />
+
 启动小车底盘
 roslaunch abot_bringup robot_with_imu.launch
 射击模块启动

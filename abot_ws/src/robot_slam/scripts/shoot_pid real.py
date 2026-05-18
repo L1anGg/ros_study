@@ -144,7 +144,7 @@ class DockPID:
         self.ki_x = 0.01   # x轴积分系数
         self.kd_x = 0.1    # x轴微分系数
         
-        self.kp_y = 0.4    # y轴比例系数
+        self.kp_y = 0.45    # y轴比例系数
         self.ki_y = 0.01   # y轴积分系数
         self.kd_y = 0.1    # y轴微分系数
         
@@ -228,7 +228,7 @@ class DockPID:
         
         return output, error, integral, current_time
 
-    def precise_dock(self, target_x, target_y, target_yaw_deg, timeout=7.0):
+    def precise_dock(self, target_x, target_y, target_yaw_deg, timeout=10.0):
         """
         核心停靠函数
         :param target_x: 目标x坐标（map坐标系）
@@ -671,7 +671,7 @@ class navigation_demo:
 
         # ---------------------- 初始状态：物体瞄准射击 ----------------------
         # 偏移量大于0.5像素，目标ID为53，未射击过，状态机为初始状态0
-        if abs(flog1) > 2 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+        if abs(flog1) > 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
             print('瞄准中[马了]')
             # 初始化速度消息
             msg = Twist()
@@ -679,10 +679,11 @@ class navigation_demo:
             msg.angular.z = max(-0.4, min(0.4, -0.03 * flog0))
             # 发布速度指令
             self.pub.publish(msg)
-            rospy.sleep(0.1)
+            # 注意：不要在回调中 rospy.sleep，会导致反馈延迟引起摆动！
+            # rospy.sleep(0.1)  ← 已移除，让回调以发布者帧率运行
         
         # 对准完成：偏移量小于0.5像素，目标ID正确，未射击过
-        elif abs(flog1) <= 2 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+        elif abs(flog1) <= 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
             # 串口发送射击启动指令
             #ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
             print("发射[好枪兄弟]")

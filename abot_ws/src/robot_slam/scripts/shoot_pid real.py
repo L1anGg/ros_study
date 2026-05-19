@@ -335,6 +335,9 @@ class navigation_demo:
         self.current_y = 0.0
         self.current_yaw = 0.0
 
+        self._prev_error = 0.0
+        self._last_time  = None
+
 
 
     # 实时获取小车当前坐标和朝向（通过TF），并更新给DockPID
@@ -453,9 +456,10 @@ class navigation_demo:
             msg.linear.x = 0
             self.pub.publish(msg)
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.10, target_y=-0.45, target_yaw_deg=0)
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-0.35, target_yaw_deg=0)
             rospy.sleep(2)
-            navi.pid_goto(pid_g=2)
+            case = 0
+            #navi.pid_goto(pid_g=2)
             #return True
 
 
@@ -467,10 +471,10 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.10, target_y=-1.70, target_yaw_deg=0.00)
-            #case = 1
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-1.65, target_yaw_deg=0.00)
+            case = 1
             rospy.sleep(2)
-            navi.pid_goto(pid_g=3)
+            #navi.pid_goto(pid_g=3)
             #return True
 
         #pid_g=3
@@ -480,12 +484,12 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.10, target_y=-2.90, target_yaw_deg=0.00)
-            #case = 2
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-2.90, target_yaw_deg=0.00)
+            case = 2
             #return True
             rospy.sleep(2)
 
-            self.end()
+            #self.end()
 
 
     def yaw_zero(self):
@@ -530,7 +534,7 @@ class navigation_demo:
         msg.angular.y = 0.0
         msg.angular.z = 0.0
         # 循环发布速度指令，总时长15*0.1=1.5秒
-        while(back_time <= 14):
+        while(back_time <= 15):
             self.pub.publish(msg)
             # 休眠0.1秒，控制发布频率
             rospy.sleep(0.1)
@@ -565,9 +569,9 @@ class navigation_demo:
                 ar_y_0 = marker.pose.pose.position.y
                 # 计算X轴偏移绝对值，判断是否对准
                 ar_x_0_abs = abs(ar_x_0)
-                print('id:', marker.id)
-                print('x:', ar_x_0)
-                print('y:', ar_y_0)
+                #print('id:', marker.id)
+                #print('x:', ar_x_0)
+                #print('y:', ar_y_0)
 
                 # 偏移量大于阈值，未对准，调整角速度
                 if ar_x_0_abs >= Yaw_th :
@@ -620,7 +624,7 @@ class navigation_demo:
                 # 未对准，调整旋转角速度
                 if ar_x_0_abs >= Yaw_th :
                     msg_2 = Twist()
-                    msg_2.angular.z = max(-0.3, min(0.3, -0.4 * ar_x_0))
+                    msg_2.angular.z = max(-0.3, min(0.3, -0.6 * ar_x_0))
                     print(msg_2.angular.z)
                     print(ar_x_0_abs)
                     self.pub.publish(msg_2)
@@ -650,74 +654,68 @@ class navigation_demo:
                     #self.goto(goals[3])
                     print('执行终点后退动作')
 
+    
+    # ---------- PD 控制（变成方法）----------
+    def pd_control(self, error, now, kp=0.01, kd=0.02, max_out=0.3):
+        """简易 PD，返回角速度"""
+
+        # 1. dt
+        if self._last_time is None:
+            dt = 0.0
+        else:
+            dt = (now - self._last_time).to_sec()
+            if dt <= 0 or dt > 0.5:
+                dt = 0.0
+
+        # 2. 微分
+        derivative = (error - self._prev_error) / dt if dt > 0 else 0.0
+
+        # 3. PD 输出
+        output = -kp * error - kd * derivative
+        output = max(-max_out, min(max_out, output))
+
+        # 4. 保存
+        self._prev_error = error
+        self._last_time  = now
+
+        return output
+
+
+    def pd_reset(self):
+        """清微分历史"""
+        self._prev_error = 0.0
+        self._last_time  = None
+
+
     # 物体识别回调函数：根据视觉识别的目标坐标，执行对准与射击
     def find_cb(self, data):
-        
         global id, flog0, flog1, flog2, count, move_flog, point_msg, case
-        # 初始化AR码ID为无效值
-        id =255
-        # 获取物体识别的坐标结果
+
+        id = 255
         point_msg = data
-        # 计算目标在画面X轴与中心(320像素)的偏移量
-        flog0 = point_msg.x -320
-        # 计算偏移绝对值
+        flog0 = point_msg.x - 320
         flog1 = abs(flog0)
-        '''
-        print('target:',point_msg.z)
-        print('flog1',flog1)
-        print('flog2:',flog2)
-        print('case:',case)
-        '''
 
-        # ---------------------- 初始状态：物体瞄准射击 ----------------------
-        # 偏移量大于0.5像素，目标ID为53，未射击过，状态机为初始状态0
-        if abs(flog1) > 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+        if flog1 > 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
             print('瞄准中[马了]')
-            # 初始化速度消息
             msg = Twist()
-            # 角速度与偏移量成正比，闭环调整机器人朝向，对准目标
-            msg.angular.z = max(-0.4, min(0.4, -0.03 * flog0))
-            # 发布速度指令
+            msg.angular.z = self.pd_control(flog0, rospy.Time.now())  # self.xxx
             self.pub.publish(msg)
-            # 注意：不要在回调中 rospy.sleep，会导致反馈延迟引起摆动！
-            # rospy.sleep(0.1)  ← 已移除，让回调以发布者帧率运行
-        
-        # 对准完成：偏移量小于0.5像素，目标ID正确，未射击过
-        elif abs(flog1) <= 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
-            # 串口发送射击启动指令
-            #ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
-            print("发射[好枪兄弟]")
-            rospy.sleep(0.08)
-            # 串口发送射击停止指令
-            # ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
 
+        elif flog1 <= 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+            print("发射[好枪兄弟]")
             msg_end = Twist()
             msg_end.angular.z = 0.0
-            # 发布速度指令
             self.pub.publish(msg_end)
-
             self.yaw_zero()
 
+            self.pd_reset()   # self.xxx
+
             rospy.sleep(2)
-
-
-            # 射击完成，导航到2号目标点
-            #self.goto(goals[1])
             self.pid_goto(pid_g=2)
             print('导航到2号目标点')
-
             rospy.sleep(2)
-
-            # 射击标志位减1，防止重复射击
             flog2 = flog2 - 1
-
-            #self.goto(goals[2])
-            #print('导航到3号目标点')
-            #rospy.sleep(4)
-            # 状态机切换到1号靶位状态
-            #case = 4
-            #self.end()
-            #print('执行终点后退动作')
 
 
     # 设置机器人初始位姿函数：在地图中初始化机器人的位置和朝向

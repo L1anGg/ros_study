@@ -457,7 +457,7 @@ class navigation_demo:
             self.pub.publish(msg)
             print(self.current_x, self.current_y, self.current_yaw)
             self.dock_pid.precise_dock(target_x=1.20, target_y=-0.35, target_yaw_deg=0)
-            rospy.sleep(2)
+            rospy.sleep(0.5)
             case = 0
             #navi.pid_goto(pid_g=2)
             #return True
@@ -472,8 +472,9 @@ class navigation_demo:
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
             self.dock_pid.precise_dock(target_x=1.20, target_y=-1.65, target_yaw_deg=0.00)
+            
+            rospy.sleep(0.5)
             case = 1
-            rospy.sleep(2)
             #navi.pid_goto(pid_g=3)
             #return True
 
@@ -485,10 +486,10 @@ class navigation_demo:
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
             self.dock_pid.precise_dock(target_x=1.20, target_y=-2.90, target_yaw_deg=0.00)
-            case = 2
+            
             #return True
-            rospy.sleep(2)
-
+            rospy.sleep(0.5)
+            case = 2
             #self.end()
 
 
@@ -571,21 +572,21 @@ class navigation_demo:
                 ar_x_0_abs = abs(ar_x_0)
                 #print('id:', marker.id)
                 #print('x:', ar_x_0)
-                #print('y:', ar_y_0)
+                print('y:', ar_y_0)
 
                 # 偏移量大于阈值，未对准，调整角速度
                 if ar_x_0_abs >= Yaw_th :
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
-                    msg.angular.z = max(-0.3, min(0.3, -0.4 * ar_x_0))
+                    msg.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中[马了]')
-                    print(ar_x_0)
+                    print('x:', ar_x_0)
                 
                 # 对准完成，且Y轴坐标在有效射击范围内，执行射击
-                if ar_y_0 <= Max_y and ar_y_0 >= Min_y and ar_x_0_abs < Yaw_th:
+                elif ar_y_0 <= Max_y and ar_y_0 >= Min_y and ar_x_0_abs < Yaw_th:
                     # 串口发送射击启动指令（硬件协议指令）
                     #ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                     print("发射[好枪兄弟]")
@@ -617,16 +618,16 @@ class navigation_demo:
                 ar_x_0 = marker.pose.pose.position.x
                 # 计算X轴偏移绝对值
                 ar_x_0_abs = abs(ar_x_0)
-                print('id:', marker.id)
+                #print('id:', marker.id)
                 print('x:', ar_x_0)
-                print('y:', ar_y_0)
+                #print('y:', ar_y_0)
                 
                 # 未对准，调整旋转角速度
                 if ar_x_0_abs >= Yaw_th :
                     msg_2 = Twist()
-                    msg_2.angular.z = max(-0.3, min(0.3, -0.6 * ar_x_0))
-                    print(msg_2.angular.z)
-                    print(ar_x_0_abs)
+                    msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
+                    #print(msg_2.angular.z)
+                    #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
                     print('瞄准中[马了]')
 
@@ -656,7 +657,7 @@ class navigation_demo:
 
     
     # ---------- PD 控制（变成方法）----------
-    def pd_control(self, error, now, kp=0.01, kd=0.02, max_out=0.3):
+    def pd_control(self, error, now, kp=0.04, kd=0.03, max_out=0.3):
         """简易 PD，返回角速度"""
 
         # 1. dt
@@ -696,13 +697,13 @@ class navigation_demo:
         flog0 = point_msg.x - 320
         flog1 = abs(flog0)
 
-        if flog1 > 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+        if flog1 > 7 and point_msg.z == 53 and flog2 >= 255 and case == 0:
             print('瞄准中[马了]')
             msg = Twist()
             msg.angular.z = self.pd_control(flog0, rospy.Time.now())  # self.xxx
             self.pub.publish(msg)
 
-        elif flog1 <= 6 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+        elif flog1 <= 7 and point_msg.z == 53 and flog2 >= 255 and case == 0:
             print("发射[好枪兄弟]")
             msg_end = Twist()
             msg_end.angular.z = 0.0

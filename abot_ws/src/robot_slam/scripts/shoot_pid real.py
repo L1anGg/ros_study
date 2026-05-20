@@ -16,7 +16,7 @@ import math
 # 导入ROS动作库，用于move_base导航的异步动作调用
 import actionlib
 # 导入串口通信库，用于与射击机构硬件通信
-#import serial
+import serial
 # 导入系统时间库（注意：原代码全局变量time覆盖了该模块，已修正命名）
 import time as sys_time
 # 导入ROS标准字符串消息类型
@@ -28,7 +28,7 @@ serialPort = "/dev/shoot"
 # 串口波特率
 baudRate = 9600
 # 初始化串口实例，配置串口参数：无校验、8位数据位、1位停止位
-#ser = serial.Serial(port=serialPort, baudrate=baudRate, parity="N", bytesize=8, stopbits=1)
+ser = serial.Serial(port=serialPort, baudrate=baudRate, parity="N", bytesize=8, stopbits=1)
 # ---------------------- 导航与动作相关消息导入 ----------------------
 # 导入动作状态消息，用于判断导航执行结果
 from actionlib_msgs.msg import *
@@ -58,7 +58,15 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
+r1_path = "/home/l1ang/abot_ws/mp3s/旋转靶1号.mp3"
+r2_path = "/home/l1ang/abot_ws/mp3s/旋转靶2号.mp3"
+r3_path = "/home/l1ang/abot_ws/mp3s/旋转靶3号.mp3"
+r4_path = "/home/l1ang/abot_ws/mp3s/旋转靶4号.mp3"
+r5_path = "/home/l1ang/abot_ws/mp3s/旋转靶5号.mp3"
 
+m6_path = "/home/l1ang/abot_ws/mp3s/移动靶6号.mp3"
+m7_path = "/home/l1ang/abot_ws/mp3s/移动靶7号.mp3"
+m8_path = "/home/l1ang/abot_ws/mp3s/移动靶8号.mp3"
 # ---------------------- 全局变量定义 ----------------------
 target_id_rotating_mapping = {
     "零":0,
@@ -108,7 +116,7 @@ back_time = 0
 # 机器人运动状态标志
 move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
-Yaw_th = 0.064 #0.064
+Yaw_th = 0.0045 #0.064
 # AR码Y轴坐标有效范围下限
 Min_y = -0.36 #0.36
 # AR码Y轴坐标有效范围上限
@@ -337,6 +345,7 @@ class navigation_demo:
 
         self._prev_error = 0.0
         self._last_time  = None
+        self._integral   = 0.0
 
 
 
@@ -579,7 +588,9 @@ class navigation_demo:
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
-                    msg.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
+                    # ✅ 方案A：显式传 kp/kd，原逻辑 kp≈0.4
+                    msg.angular.z = self.pid_control(ar_x_0, rospy.Time.now(),
+                                                kp=0.8, kd=0.05, max_out=0.3)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中[马了]')
@@ -588,12 +599,12 @@ class navigation_demo:
                 # 对准完成，且Y轴坐标在有效射击范围内，执行射击
                 elif ar_y_0 <= Max_y and ar_y_0 >= Min_y and ar_x_0_abs < Yaw_th:
                     # 串口发送射击启动指令（硬件协议指令）
-                    #ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
+                    ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                     print("发射[好枪兄弟]")
                     # 等待射击机构启动
                     rospy.sleep(0.08)
                     # 串口发送射击停止指令
-                    #ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
+                    ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
                     # 射击后等待2秒，避免机构抖动
                     
                     # 状态机切换到2号靶位状态
@@ -603,6 +614,7 @@ class navigation_demo:
                     msg_s1.angular.z = 0.0
                     # 发布速度指令
                     self.pub.publish(msg_s1)
+                    self.pid_reset()          # 清 PID 历史，避免下轮瞄准积分残留
                     rospy.sleep(2)
                     self.yaw_zero()
                     rospy.sleep(2)
@@ -625,7 +637,9 @@ class navigation_demo:
                 # 未对准，调整旋转角速度
                 if ar_x_0_abs >= Yaw_th :
                     msg_2 = Twist()
-                    msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
+                    # ✅ 原逻辑 kp≈0.6
+                    msg_2.angular.z = self.pid_control(ar_x_0, rospy.Time.now(),
+                                                  kp=0.8, kd=0.05, max_out=0.3)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
@@ -634,17 +648,18 @@ class navigation_demo:
                 # 对准完成，执行射击
                 elif ar_x_0_abs < Yaw_th :
                     # 串口发送射击启动指令
-                    #ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
+                    ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                     print("发射[好枪兄弟]")
                     rospy.sleep(0.07)
                     # 串口发送射击停止指令
-                    #ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
+                    ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
                     # 状态机切换到终点状态
                     case = 3   
                     msg_s = Twist()
                     msg_s.angular.z = 0.0
                     # 发布速度指令
                     self.pub.publish(msg_s)
+                    self.pid_reset()          # 清 PID 历史
                     rospy.sleep(2)
                     self.yaw_zero()
                     # 导航到3号终点目标点
@@ -656,9 +671,9 @@ class navigation_demo:
                     print('执行终点后退动作')
 
     
-    # ---------- PD 控制（变成方法）----------
-    def pd_control(self, error, now, kp=0.04, kd=0.03, max_out=0.3):
-        """简易 PD，返回角速度"""
+    # ---------- PID 控制 ----------
+    def pid_control(self, error, now, kp=0.03, ki=0.005, kd=0.04, max_out=0.3, max_i=0.1):
+        """简易 PID，返回角速度"""
 
         # 1. dt
         if self._last_time is None:
@@ -668,24 +683,30 @@ class navigation_demo:
             if dt <= 0 or dt > 0.5:
                 dt = 0.0
 
-        # 2. 微分
+        # 2. 积分项（梯形积分 + 限幅）
+        if dt > 0:
+            self._integral += error * dt
+            self._integral = max(-max_i, min(max_i, self._integral))
+
+        # 3. 微分项
         derivative = (error - self._prev_error) / dt if dt > 0 else 0.0
 
-        # 3. PD 输出
-        output = -kp * error - kd * derivative
+        # 4. PID 输出
+        output = -(kp * error + ki * self._integral + kd * derivative)
         output = max(-max_out, min(max_out, output))
 
-        # 4. 保存
+        # 5. 保存
         self._prev_error = error
         self._last_time  = now
 
         return output
 
 
-    def pd_reset(self):
-        """清微分历史"""
+    def pid_reset(self):
+        """清 PID 历史（误差、微分、积分）"""
         self._prev_error = 0.0
         self._last_time  = None
+        self._integral   = 0.0
 
 
     # 物体识别回调函数：根据视觉识别的目标坐标，执行对准与射击
@@ -698,19 +719,27 @@ class navigation_demo:
         flog1 = abs(flog0)
 
         if flog1 > 7 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+            print('err:',flog0)
             print('瞄准中[马了]')
             msg = Twist()
-            msg.angular.z = self.pd_control(flog0, rospy.Time.now())  # self.xxx
+            msg.angular.z = self.pid_control(flog0, rospy.Time.now())  # self.xxx
             self.pub.publish(msg)
 
         elif flog1 <= 7 and point_msg.z == 53 and flog2 >= 255 and case == 0:
+            # 串口发送射击启动指令（硬件协议指令）
+            ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
+            # 等待射击机构启动
+            rospy.sleep(0.08)
+            # 串口发送射击停止指令
+            ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
             print("发射[好枪兄弟]")
+            print('err:',flog0)
             msg_end = Twist()
             msg_end.angular.z = 0.0
             self.pub.publish(msg_end)
             self.yaw_zero()
 
-            self.pd_reset()   # self.xxx
+            self.pid_reset()   # self.xxx
 
             rospy.sleep(2)
             self.pid_goto(pid_g=2)
@@ -818,15 +847,30 @@ if __name__ == "__main__":
                 rospy.loginfo("Set moving target ID to: %d", moving_id)
                 break
 
+        if rotating_id == 1:
+            os.system('mplayer %s' % r1_path)
+        elif rotating_id == 2:
+            os.system('mplayer %s' % r2_path)
+        elif rotating_id == 3:
+            os.system('mplayer %s' % r3_path)
+        elif rotating_id == 4:
+            os.system('mplayer %s' % r4_path)
+        elif rotating_id == 5:
+            os.system('mplayer %s' % r5_path)
+
+        if moving_id == 6:
+            os.system('mplayer %s' % m6_path)
+        elif moving_id == 7:
+            os.system('mplayer %s' % m7_path)
+        elif moving_id == 8:
+            os.system('mplayer %s' % m8_path)
+
         if rotating_id == 5 :
             rotating_id = 1
         else :
             rotating_id = rotating_id+1
         
-        if moving_id == 8 :
-            moving_id = 6
-        else :
-            moving_id = moving_id+1
+
 
         print('识别到旋转靶id:'+str(rotating_id)+', 识别到移动靶id:'+str(moving_id))
 

@@ -116,12 +116,12 @@ back_time = 0
 # 机器人运动状态标志
 move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
-Yaw_th = 0.065 #0.064
-Yaw_th1 = 0.06
+Yaw_th = 0.09 #0.064
+Yaw_th1 = 0.07
 # AR码Y轴坐标有效范围下限
-Min_y = -0.23 #0.36
+Min_y = -0.47 #0.36
 # AR码Y轴坐标有效范围上限
-Max_y = -0.20 #0.30
+Max_y = -0.42 #0.30
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -589,9 +589,8 @@ class navigation_demo:
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
-                    # ✅ 方案A：显式传 kp/kd，原逻辑 kp≈0.4
                     msg.angular.z = self.pid_control(ar_x_0, rospy.Time.now(),
-                                                kp=1.0, kd=0.05, max_out=0.3)
+                                                kp=1.2, ki=0.008, kd=0.35, max_out=0.45)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中[马了]')
@@ -629,18 +628,19 @@ class navigation_demo:
             if marker.id == moving_id and case == 2 :
                 # 获取AR码X轴坐标
                 ar_x_0 = marker.pose.pose.position.x
+                ar_y_0 = marker.pose.pose.position.y
                 # 计算X轴偏移绝对值
                 ar_x_0_abs = abs(ar_x_0)
                 #print('id:', marker.id)
                 print('x:', ar_x_0)
-                #print('y:', ar_y_0)
+                print('y:', ar_y_0)
                 
                 # 未对准，调整旋转角速度
                 if ar_x_0_abs >= Yaw_th1 :
                     msg_2 = Twist()
                     # ✅ 原逻辑 kp≈0.6
                     msg_2.angular.z = self.pid_control(ar_x_0, rospy.Time.now(),
-                                                  kp=0.8, kd=0.05, max_out=0.3)
+                                                  kp=2.0, ki=0.015, kd=0.05, max_out=0.35, max_i=0.15)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
@@ -662,12 +662,12 @@ class navigation_demo:
                     self.pub.publish(msg_s)
                     self.pid_reset()          # 清 PID 历史
                     rospy.sleep(2)
-                    self.yaw_zero()
+                    #self.yaw_zero()
                     # 导航到3号终点目标点
                     #self.goto(goals[3])
                     rospy.sleep(1)
                     # 执行终点后退动作
-                    self.end()
+                    #self.end()
                     #self.goto(goals[3])
                     print('执行终点后退动作')
 
@@ -878,7 +878,7 @@ if __name__ == "__main__":
 
     # 实例化导航类
     navi = navigation_demo()
-    navi.set_pose(initial_pose)
+    #navi.set_pose(initial_pose)
     rospy.sleep(2)  # 等待位姿生效
     if input == '1':
         # 语音识别打击目标
@@ -889,11 +889,11 @@ if __name__ == "__main__":
         
         # 打击环形靶
         print('pidgoto')
-        navi.pid_goto(pid_g=1)
+        #navi.pid_goto(pid_g=1)
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        #case = 0
+        case = 2
 
 
         # ROS主循环，持续接收回调，直到节点关闭

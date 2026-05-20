@@ -594,6 +594,7 @@ class navigation_demo:
             if marker.id == moving_id and case == 2 :
                 # 获取AR码X轴坐标
                 ar_x_0 = marker.pose.pose.position.x
+                ar_y_0 = marker.pose.pose.position.y
                 # 计算X轴偏移绝对值
                 ar_x_0_abs = abs(ar_x_0)
                 

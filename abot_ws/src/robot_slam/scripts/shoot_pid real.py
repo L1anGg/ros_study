@@ -591,7 +591,7 @@ class navigation_demo:
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     # ✅ 方案A：显式传 kp/kd，原逻辑 kp≈0.4
                     msg.angular.z = self.pid_control(ar_x_0, rospy.Time.now(),
-                                                kp=0.8, kd=0.05, max_out=0.3)
+                                                kp=1.0, kd=0.05, max_out=0.3)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中[马了]')

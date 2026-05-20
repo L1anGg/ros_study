@@ -116,11 +116,12 @@ back_time = 0
 # 机器人运动状态标志
 move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
-Yaw_th = 0.0045 #0.064
+Yaw_th = 0.065 #0.064
+Yaw_th1 = 0.06
 # AR码Y轴坐标有效范围下限
-Min_y = -0.36 #0.36
+Min_y = -0.23 #0.36
 # AR码Y轴坐标有效范围上限
-Max_y = -0.30 #0.30
+Max_y = -0.20 #0.30
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -597,7 +598,7 @@ class navigation_demo:
                     print('x:', ar_x_0)
                 
                 # 对准完成，且Y轴坐标在有效射击范围内，执行射击
-                elif ar_y_0 <= Max_y and ar_y_0 >= Min_y and ar_x_0_abs < Yaw_th:
+                elif ar_y_0 <= Max_y and ar_y_0 >= Min_y:
                     # 串口发送射击启动指令（硬件协议指令）
                     ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                     print("发射[好枪兄弟]")
@@ -635,7 +636,7 @@ class navigation_demo:
                 #print('y:', ar_y_0)
                 
                 # 未对准，调整旋转角速度
-                if ar_x_0_abs >= Yaw_th :
+                if ar_x_0_abs >= Yaw_th1 :
                     msg_2 = Twist()
                     # ✅ 原逻辑 kp≈0.6
                     msg_2.angular.z = self.pid_control(ar_x_0, rospy.Time.now(),
@@ -646,7 +647,7 @@ class navigation_demo:
                     print('瞄准中[马了]')
 
                 # 对准完成，执行射击
-                elif ar_x_0_abs < Yaw_th :
+                elif ar_x_0_abs < Yaw_th1 :
                     # 串口发送射击启动指令
                     ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                     print("发射[好枪兄弟]")

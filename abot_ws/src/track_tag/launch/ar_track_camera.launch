@@ -7,11 +7,11 @@
   <!-- 2. 发布静态 TF 变换：base_link 坐标系 -> usb_cam 坐标系 -->
   <!-- 参数说明：x y z roll pitch yaw (单位：米/弧度)，这里设置了相机相对于底座的位置和旋转 -->
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_cam" 
-        args="0 0 0.3 0 1.57 -1.57 base_link usb_cam 10" />
+        args="0 0 0.3 0 1.57079632679 -1.57079632679 base_link usb_cam 10" />
 
   <!-- 3. 定义可配置参数（可在启动时通过命令行覆盖） -->
-  <arg name="marker_size" default="11" />           <!-- AR 标签的实际尺寸（单位：厘米） -->
-  <arg name="max_new_marker_error" default="0.08" /><!-- 新检测到的标签允许的最大误差 -->
+  <arg name="marker_size" default="9" />           <!-- AR 标签的实际尺寸（单位：厘米） -->
+  <arg name="max_new_marker_error" default="0.1" /><!-- 新检测到的标签允许的最大误差 -->
   <arg name="max_track_error" default="0.2" />     <!-- 跟踪过程中允许的最大误差 -->
   <arg name="cam_image_topic" default="/usb_cam/image_raw" /> <!-- 摄像头图像话题 -->
   <arg name="cam_info_topic" default="/usb_cam/camera_info" /> <!-- 摄像头参数话题 -->
@@ -24,6 +24,7 @@
   <node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" 
         respawn="false" output="screen">
     <!-- 将参数传递给节点 -->
+    <param name="max_frequency" value="15.0" />
     <param name="marker_size" type="double" value="$(arg marker_size)" />
     <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
     <param name="max_track_error" type="double" value="$(arg max_track_error)" />

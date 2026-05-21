@@ -179,8 +179,8 @@ class XunfeiIAT:
             
             # 初始化PyAudio，打开麦克风
             p = pyaudio.PyAudio()
-            stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
             os.system('mplayer %s' % music_path)
+            stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
             rospy.loginfo("🎤 请开始说话...")
             
             # 标记正在录音

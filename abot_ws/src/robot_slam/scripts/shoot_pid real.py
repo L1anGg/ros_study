@@ -122,9 +122,9 @@ Yaw_th2 = -0.195
 Yaw_th3 = -0.18
 Yaw_th4 = -0.20
 # AR码Y轴坐标有效范围下限
-Min_y = -0.05 #0.36
+Min_y = -0.1 #0.36
 # AR码Y轴坐标有效范围上限
-Max_y = 0.05 #0.30
+Max_y = 0.1 #0.30
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -469,7 +469,7 @@ class navigation_demo:
             msg.linear.x = 0
             self.pub.publish(msg)
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-0.35, target_yaw_deg=0)
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-0.37, target_yaw_deg=0)
             rospy.sleep(0.5)
             case = 0
             #navi.pid_goto(pid_g=2)
@@ -484,7 +484,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-1.65, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-1.67, target_yaw_deg=0.00)
             
             rospy.sleep(0.5)
             case = 1
@@ -498,7 +498,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-2.90, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-2.92, target_yaw_deg=0.00)
             
             #return True
             rospy.sleep(0.5)
@@ -548,7 +548,7 @@ class navigation_demo:
         msg.angular.y = 0.0
         msg.angular.z = 0.0
         # 循环发布速度指令，总时长15*0.1=1.5秒
-        while(back_time <= 15):
+        while(back_time <= 18):
             self.pub.publish(msg)
             # 休眠0.1秒，控制发布频率
             rospy.sleep(0.1)
@@ -557,7 +557,7 @@ class navigation_demo:
         msg.linear.x = -0.3
         msg.linear.y = 0
         back_time = 0
-        while(back_time <= 34):
+        while(back_time <= 36):
             self.pub.publish(msg)
             # 休眠0.1秒，控制发布频率
             rospy.sleep(0.1)
@@ -669,12 +669,9 @@ class navigation_demo:
                     self.pid_reset()          # 清 PID 历史
                     rospy.sleep(2)
                     self.yaw_zero()
-                    # 导航到3号终点目标点
-                    #self.goto(goals[3])
                     rospy.sleep(1)
                     # 执行终点后退动作
                     self.end()
-                    #self.goto(goals[3])
                     print('执行终点后退动作')
 
     
@@ -725,34 +722,40 @@ class navigation_demo:
         flog0 = point_msg.x - 320
         flog1 = abs(flog0)
 
-        if flog1 > 7 and point_msg.z == 53 and flog2 >= 255 and case == 0:
-            print('err:',flog0)
-            print('瞄准中[马了]')
-            msg = Twist()
-            msg.angular.z = self.pid_control(flog0, rospy.Time.now())  # self.xxx
-            self.pub.publish(msg)
+        if case == 0:
 
-        elif flog1 <= 7 and point_msg.z == 53 and flog2 >= 255 and case == 0:
-            # 串口发送射击启动指令（硬件协议指令）
-            ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
-            # 等待射击机构启动
-            rospy.sleep(0.08)
-            # 串口发送射击停止指令
-            ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
-            print("发射[好枪兄弟]")
-            print('err:',flog0)
-            msg_end = Twist()
-            msg_end.angular.z = 0.0
-            self.pub.publish(msg_end)
-            self.yaw_zero()
+            if flog0 > -18 or flog0 < -21 :
+                print('err:',flog0)
+                print('瞄准中[马了]')
+                msg = Twist()
+                msg.angular.z = self.pid_control(flog0+12, rospy.Time.now())  # self.xxx
+                self.pub.publish(msg)
 
-            self.pid_reset()   # self.xxx
+            elif flog0 >=-21 and flog0 <= -18 :
+                # 串口发送射击启动指令（硬件协议指令）
+                ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
+                # 等待射击机构启动
+                rospy.sleep(0.08)
+                # 串口发送射击停止指令
+                ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
+                print("发射[好枪兄弟]")
+                print('err:',flog0)
+                case = 3
+                #print('case:',case)
+                msg_end = Twist()
+                msg_end.angular.z = 0.0
+                self.pub.publish(msg_end)
+                self.yaw_zero()
 
-            rospy.sleep(2)
-            self.pid_goto(pid_g=2)
-            print('导航到2号目标点')
-            rospy.sleep(2)
-            flog2 = flog2 - 1
+                
+
+                self.pid_reset()   # self.xxx
+
+                rospy.sleep(2)
+                self.pid_goto(pid_g=2)
+                print('导航到2号目标点')
+                rospy.sleep(2)
+                flog2 = flog2 - 1
 
 
     # 设置机器人初始位姿函数：在地图中初始化机器人的位置和朝向
@@ -889,19 +892,19 @@ if __name__ == "__main__":
     if input == '1':
         # 语音识别打击目标
         
-        #publish_audio()
-        #rospy.Subscriber("recognized_text", String, listen_callback)
-        #rospy.sleep(10)
+        publish_audio()
+        rospy.Subscriber("recognized_text", String, listen_callback)
+        rospy.sleep(10)
         
         # 打击环形靶
-        #print('pidgoto')
+        print('pidgoto')
         #navi.pid_goto(pid_g=1)
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
         case = 1
         print('case:', case)
-        print('debug mode:3号靶位射击调试')
+        print('debug mode:2号靶射击调试')
 
         # ROS主循环，持续接收回调，直到节点关闭
     while not rospy.is_shutdown():

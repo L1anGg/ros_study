@@ -118,13 +118,13 @@ move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
 Yaw_th = 0.09 #0.064
 Yaw_th1 = -0.185
-Yaw_th2 = -0.195
+Yaw_th2 = -0.192
 Yaw_th3 = -0.18
 Yaw_th4 = -0.20
 # AR码Y轴坐标有效范围下限
-Min_y = -0.1 #0.36
+Min_y = -0.1 #-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = 0.1 #0.30
+Max_y = 0.1 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -498,7 +498,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-2.92, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.20, target_y=-2.94, target_yaw_deg=0.00)
             
             #return True
             rospy.sleep(0.5)
@@ -548,7 +548,7 @@ class navigation_demo:
         msg.angular.y = 0.0
         msg.angular.z = 0.0
         # 循环发布速度指令，总时长15*0.1=1.5秒
-        while(back_time <= 18):
+        while(back_time <= 20):
             self.pub.publish(msg)
             # 休眠0.1秒，控制发布频率
             rospy.sleep(0.1)
@@ -588,7 +588,7 @@ class navigation_demo:
                 print('y:', ar_y_0)
 
                 # 偏移量大于阈值，未对准，调整角速度
-                if ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4 :
+                if ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4 :#ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
@@ -608,6 +608,7 @@ class navigation_demo:
                     rospy.sleep(0.08)
                     # 串口发送射击停止指令
                     ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
+                    print('y:', ar_y_0)
                     # 射击后等待2秒，避免机构抖动
                     
                     # 状态机切换到2号靶位状态
@@ -619,11 +620,11 @@ class navigation_demo:
                     self.pub.publish(msg_s1)
                     self.pid_reset()          # 清 PID 历史，避免下轮瞄准积分残留
                     rospy.sleep(2)
-                    #self.yaw_zero()
+                    self.yaw_zero()
                     rospy.sleep(2)
                     print(case)
                     # 导航到3号目标点
-                    #self.pid_goto(pid_g=3)
+                    self.pid_goto(pid_g=3)
                     print('导航到3号目标点')    
                     rospy.sleep(2)
             
@@ -724,14 +725,14 @@ class navigation_demo:
 
         if case == 0:
 
-            if flog0 > -18 or flog0 < -21 :
+            if flog0 > -16 or flog0 < -24 :
                 print('err:',flog0)
                 print('瞄准中[马了]')
                 msg = Twist()
-                msg.angular.z = self.pid_control(flog0+12, rospy.Time.now())  # self.xxx
+                msg.angular.z = self.pid_control(flog0+20, rospy.Time.now())  # self.xxx
                 self.pub.publish(msg)
 
-            elif flog0 >=-21 and flog0 <= -18 :
+            elif flog0 >=-24 and flog0 <= -16 :
                 # 串口发送射击启动指令（硬件协议指令）
                 ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                 # 等待射击机构启动
@@ -887,7 +888,7 @@ if __name__ == "__main__":
 
     # 实例化导航类
     navi = navigation_demo()
-    #navi.set_pose(initial_pose)
+    navi.set_pose(initial_pose)
     rospy.sleep(2)  # 等待位姿生效
     if input == '1':
         # 语音识别打击目标
@@ -898,11 +899,11 @@ if __name__ == "__main__":
         
         # 打击环形靶
         print('pidgoto')
-        #navi.pid_goto(pid_g=1)
+        navi.pid_goto(pid_g=1)
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        case = 1
+        #case = 1
         print('case:', case)
         print('debug mode:2号靶射击调试')
 

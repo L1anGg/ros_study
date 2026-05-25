@@ -677,7 +677,7 @@ class navigation_demo:
 
     
     # ---------- PID 控制 ----------
-    def pid_control(self, error, now, kp=0.03, ki=0.005, kd=0.04, max_out=0.3, max_i=0.1):
+    def pid_control(self, error, now, kp=0.04, ki=0.005, kd=0.04, max_out=0.3, max_i=0.1):
         """简易 PID，返回角速度"""
 
         # 1. dt

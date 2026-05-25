@@ -469,7 +469,7 @@ class navigation_demo:
             msg.linear.x = 0
             self.pub.publish(msg)
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-0.37, target_yaw_deg=0)
+            self.dock_pid.precise_dock(target_x=1.22, target_y=-0.37, target_yaw_deg=0)
             rospy.sleep(0.5)
             case = 0
             #navi.pid_goto(pid_g=2)
@@ -484,7 +484,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-1.67, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.22, target_y=-1.67, target_yaw_deg=0.00)
             
             rospy.sleep(0.5)
             case = 1
@@ -498,7 +498,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.20, target_y=-2.94, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.22, target_y=-2.94, target_yaw_deg=0.00)
             
             #return True
             rospy.sleep(0.5)
@@ -677,7 +677,7 @@ class navigation_demo:
 
     
     # ---------- PID 控制 ----------
-    def pid_control(self, error, now, kp=0.04, ki=0.005, kd=0.04, max_out=0.3, max_i=0.1):
+    def pid_control(self, error, now, kp=0.07, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1):
         """简易 PID，返回角速度"""
 
         # 1. dt

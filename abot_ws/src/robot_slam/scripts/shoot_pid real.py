@@ -596,14 +596,14 @@ class navigation_demo:
                                                 kp=1.3, ki=0.008, kd=0.35, max_out=0.45)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
-                    print('瞄准中[马了]')
+                    print('瞄准中')
                     print('x:', ar_x_0)
                 
                 # 对准完成，且Y轴坐标在有效射击范围内，执行射击
                 elif ar_y_0 <= Max_y and ar_y_0 >= Min_y:
                     # 串口发送射击启动指令（硬件协议指令）
                     ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
-                    print("发射[好枪兄弟]")
+                    print("发射")
                     # 等待射击机构启动
                     rospy.sleep(0.08)
                     # 串口发送射击停止指令
@@ -651,7 +651,7 @@ class navigation_demo:
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
-                    print('瞄准中[马了]')
+                    print('瞄准中')
 
                 # 对准完成，执行射击
                 elif ar_x_0 < Yaw_th1 and ar_x_0 > Yaw_th2:
@@ -727,7 +727,7 @@ class navigation_demo:
 
             if flog0 > -16 or flog0 < -24 :
                 print('err:',flog0)
-                print('瞄准中[马了]')
+                print('瞄准中')
                 msg = Twist()
                 msg.angular.z = self.pid_control(flog0+20, rospy.Time.now())  # self.xxx
                 self.pub.publish(msg)
@@ -739,7 +739,7 @@ class navigation_demo:
                 rospy.sleep(0.08)
                 # 串口发送射击停止指令
                 ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
-                print("发射[好枪兄弟]")
+                print("发射")
                 print('err:',flog0)
                 case = 3
                 #print('case:',case)

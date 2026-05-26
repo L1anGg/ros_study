@@ -10,7 +10,7 @@
         args="0 0 0.3 0 1.57079632679 -1.57079632679 base_link usb_cam 10" />
 
   <!-- 3. 定义可配置参数（可在启动时通过命令行覆盖） -->
-  <arg name="marker_size" default="7" />           <!-- AR 标签的实际尺寸（单位：厘米） -->
+  <arg name="marker_size" default="9" />           <!-- AR 标签的实际尺寸（单位：厘米） -->
   <arg name="max_new_marker_error" default="0.1" /><!-- 新检测到的标签允许的最大误差 -->
   <arg name="max_track_error" default="0.2" />     <!-- 跟踪过程中允许的最大误差 -->
   <arg name="cam_image_topic" default="/usb_cam/image_raw" /> <!-- 摄像头图像话题 -->

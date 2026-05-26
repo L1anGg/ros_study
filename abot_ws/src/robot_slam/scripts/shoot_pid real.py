@@ -118,7 +118,7 @@ move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
 Yaw_th = 0.09 #0.064
 Yaw_th1 = -0.185
-Yaw_th2 = -0.192
+Yaw_th2 = -0.195
 Yaw_th3 = -0.18
 Yaw_th4 = -0.20
 # AR码Y轴坐标有效范围下限
@@ -469,7 +469,7 @@ class navigation_demo:
             msg.linear.x = 0
             self.pub.publish(msg)
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.22, target_y=-0.37, target_yaw_deg=0)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-0.37, target_yaw_deg=0)
             rospy.sleep(0.5)
             case = 0
             #navi.pid_goto(pid_g=2)
@@ -484,7 +484,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.22, target_y=-1.67, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-1.67, target_yaw_deg=0.00)
             
             rospy.sleep(0.5)
             case = 1
@@ -498,7 +498,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.22, target_y=-2.94, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.94, target_yaw_deg=0.00)
             
             #return True
             rospy.sleep(0.5)

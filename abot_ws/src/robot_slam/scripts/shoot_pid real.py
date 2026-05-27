@@ -566,6 +566,8 @@ class navigation_demo:
         msg.linear.y = 0
         msg.linear.x = 0
         self.pub.publish(msg)
+        #终点停靠，使用PID实现精准停靠（可选，视实际需求调整）
+        self.dock_pid.precise_dock(target_x=0, target_y=self.current_y, target_yaw_deg=0.00)
       
     # AR码识别回调函数：核心瞄准逻辑，根据AR码坐标调整机器人姿态，对准后执行射击
     def ar_cb(self, data):

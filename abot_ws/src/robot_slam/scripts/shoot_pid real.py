@@ -122,9 +122,9 @@ Yaw_th2 = -0.195
 Yaw_th3 = -0.18
 Yaw_th4 = -0.20
 # AR码Y轴坐标有效范围下限
-Min_y = -0.05 #-0.1
+Min_y = -0.035 #-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = 0.05 #0.1
+Max_y = 0.035 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -593,7 +593,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.190, rospy.Time.now(),
-                                                kp=1.3, ki=0.008, kd=0.35, max_out=0.45)
+                                                kp=1.6, ki=0.008, kd=0.35, max_out=0.45)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')

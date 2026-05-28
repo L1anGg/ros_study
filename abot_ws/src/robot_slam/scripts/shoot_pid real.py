@@ -595,7 +595,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.190, rospy.Time.now(),
-                                                kp=1.6, ki=0.008, kd=0.35, max_out=0.45)
+                                                kp=1.65, ki=0.008, kd=0.35, max_out=0.45)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
@@ -907,7 +907,7 @@ if __name__ == "__main__":
         # 初始化状态机为0号初始状态
         #case = 1
         print('case:', case)
-        print('debug mode:2号靶射击调试')
+        print('debug mode:射击调试')
 
         # ROS主循环，持续接收回调，直到节点关闭
     while not rospy.is_shutdown():

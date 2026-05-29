@@ -381,7 +381,7 @@ class navigation_demo:
             if set == 'on':
                 msg.linear.x = 0.26
             elif set == 'down':
-                msg.linear.x = -0.25
+                msg.linear.x = -0.26
             msg.linear.y = 0
             back_time = 0
             while(back_time <= 40):
@@ -595,7 +595,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.190, rospy.Time.now(),
-                                                kp=1.65, ki=0.008, kd=0.35, max_out=0.45)
+                                                kp=1.60, ki=0.008, kd=0.35, max_out=0.45)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
@@ -621,9 +621,9 @@ class navigation_demo:
                     # 发布速度指令
                     self.pub.publish(msg_s1)
                     self.pid_reset()          # 清 PID 历史，避免下轮瞄准积分残留
-                    rospy.sleep(2)
+                    rospy.sleep(1)
                     self.yaw_zero()
-                    rospy.sleep(2)
+                    rospy.sleep(1)
                     print(case)
                     # 导航到3号目标点
                     self.pid_goto(pid_g=3)
@@ -670,7 +670,7 @@ class navigation_demo:
                     # 发布速度指令
                     self.pub.publish(msg_s)
                     self.pid_reset()          # 清 PID 历史
-                    rospy.sleep(2)
+                    rospy.sleep(1)
                     self.yaw_zero()
                     rospy.sleep(1)
                     # 执行终点后退动作
@@ -754,10 +754,10 @@ class navigation_demo:
 
                 self.pid_reset()   # self.xxx
 
-                rospy.sleep(2)
+                rospy.sleep(1)
                 self.pid_goto(pid_g=2)
                 print('导航到2号目标点')
-                rospy.sleep(2)
+                rospy.sleep(1)
                 flog2 = flog2 - 1
 
 
@@ -878,10 +878,7 @@ if __name__ == "__main__":
         elif moving_id == 8:
             os.system('mplayer %s' % m8_path)
 
-        if rotating_id == 5 :
-            rotating_id = 1
-        else :
-            rotating_id = rotating_id+1
+
         
 
 

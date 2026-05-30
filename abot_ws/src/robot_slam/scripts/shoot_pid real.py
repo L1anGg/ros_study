@@ -679,7 +679,7 @@ class navigation_demo:
 
     
     # ---------- PID 控制 ----------
-    def pid_control(self, error, now, kp=0.07, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1):
+    def pid_control(self, error, now, kp=0.06, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1):
         """简易 PID，返回角速度"""
 
         # 1. dt
@@ -727,7 +727,7 @@ class navigation_demo:
 
         if case == 0:
 
-            if flog0 > -16 or flog0 < -24 :
+            if flog0 > -18 or flog0 < -22 :
                 print('err:',flog0)
                 print('瞄准中')
                 msg = Twist()

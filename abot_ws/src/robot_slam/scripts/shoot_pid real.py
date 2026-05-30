@@ -379,12 +379,12 @@ class navigation_demo:
             msg = Twist()
             # X轴线速度
             if set == 'on':
-                msg.linear.x = 0.26
+                msg.linear.x = 0.3
             elif set == 'down':
-                msg.linear.x = -0.26
+                msg.linear.x = -0.3
             msg.linear.y = 0
             back_time = 0
-            while(back_time <= 40):
+            while(back_time <= 34.7):
                 self.pub.publish(msg)
                  # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -456,10 +456,10 @@ class navigation_demo:
                 back_time = back_time + 1
         
             # X轴线速度
-            msg.linear.x = 0.25
+            msg.linear.x = 0.3
             msg.linear.y = 0
             back_time = 0
-            while(back_time <= 47):
+            while(back_time <= 39.1):
                 self.pub.publish(msg)
                 # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -649,7 +649,7 @@ class navigation_demo:
                     # ✅ 原逻辑 kp≈0.6
                     #msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
                     msg_2.angular.z = self.pid_control(ar_x_0 + 0.190, rospy.Time.now(),
-                                                  kp=1.5, ki=0.03, kd=0.06, max_out=0.45, max_i=0.4)
+                                                  kp=1.60, ki=0.03, kd=0.06, max_out=0.45, max_i=0.4)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
@@ -727,7 +727,7 @@ class navigation_demo:
 
         if case == 0:
 
-            if flog0 > -18 or flog0 < -22 :
+            if flog0 > -16 or flog0 < -24 :
                 print('err:',flog0)
                 print('瞄准中')
                 msg = Twist()
@@ -892,9 +892,9 @@ if __name__ == "__main__":
     if input == '1':
         # 语音识别打击目标
         
-        publish_audio()
-        rospy.Subscriber("recognized_text", String, listen_callback)
-        rospy.sleep(10)
+        #publish_audio()
+        #rospy.Subscriber("recognized_text", String, listen_callback)
+        #rospy.sleep(10)
         
         # 打击环形靶
         print('pidgoto')
@@ -902,7 +902,7 @@ if __name__ == "__main__":
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        #case = 1
+        #case = 0
         print('case:', case)
         print('debug mode:射击调试')
 

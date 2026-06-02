@@ -181,8 +181,8 @@ class DockPID:
         self.current_yaw = 0.0
         
         # 停靠误差阈值（和你原有参数一致）
-        self.x_th = 0.04    # x轴误差<2cm
-        self.y_th = 0.04    # y轴误差<2cm
+        self.x_th = 0.03    # x轴误差<2cm
+        self.y_th = 0.03    # y轴误差<2cm
         self.yaw_th = 0.1  # 偏航角误差<0.57°
 
     def _reset_pid_state(self):
@@ -379,12 +379,12 @@ class navigation_demo:
             msg = Twist()
             # X轴线速度
             if set == 'on':
-                msg.linear.x = 0.3
+                msg.linear.x = 0.35
             elif set == 'down':
-                msg.linear.x = -0.3
+                msg.linear.x = -0.35
             msg.linear.y = 0
             back_time = 0
-            while(back_time <= 34.7):
+            while(back_time <= 30):
                 self.pub.publish(msg)
                  # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -403,9 +403,9 @@ class navigation_demo:
             msg = Twist()
             # Y轴线速度
             if set == 'on':
-                msg.linear.y = 0.38
+                msg.linear.y = 0.42
             elif set == 'down':
-                msg.linear.y = -0.38
+                msg.linear.y = -0.42
             # Z轴线速度：置0
             msg.linear.z = 0.0
             # 三个轴的角速度全部置0，仅平移运动
@@ -414,7 +414,7 @@ class navigation_demo:
             msg.angular.z = 0.0
             # 循环发布速度指令，总时长15*0.1=1.5秒
             back_time = 0
-            while(back_time <= 32):
+            while(back_time <= 30.4):
                 self.pub.publish(msg)
                 # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -456,10 +456,10 @@ class navigation_demo:
                 back_time = back_time + 1
         
             # X轴线速度
-            msg.linear.x = 0.3
+            msg.linear.x = 0.35
             msg.linear.y = 0
             back_time = 0
-            while(back_time <= 39.1):
+            while(back_time <= 33.5):
                 self.pub.publish(msg)
                 # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -599,7 +599,6 @@ class navigation_demo:
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
-                    print('x:', ar_x_0)
                 
                 # 对准完成，且Y轴坐标在有效射击范围内，执行射击
                 elif ar_y_0 <= Max_y and ar_y_0 >= Min_y:
@@ -679,7 +678,7 @@ class navigation_demo:
 
     
     # ---------- PID 控制 ----------
-    def pid_control(self, error, now, kp=0.06, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1):
+    def pid_control(self, error, now, kp=0.05, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1):
         """简易 PID，返回角速度"""
 
         # 1. dt

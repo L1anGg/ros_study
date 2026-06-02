@@ -24,7 +24,7 @@
   <node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" 
         respawn="false" output="screen">
     <!-- 将参数传递给节点 -->
-    <param name="max_frequency" value="15.0" />
+    <param name="max_frequency" value="25.0" />
     <param name="marker_size" type="double" value="$(arg marker_size)" />
     <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
     <param name="max_track_error" type="double" value="$(arg max_track_error)" />

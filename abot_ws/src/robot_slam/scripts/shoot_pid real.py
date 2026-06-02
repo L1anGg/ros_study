@@ -122,9 +122,9 @@ Yaw_th2 = -0.195
 Yaw_th3 = -0.18
 Yaw_th4 = -0.20
 # AR码Y轴坐标有效范围下限
-Min_y = -0.035 #-0.1
+Min_y = -0.12 #-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = 0.035 #0.1
+Max_y = -0.05 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -181,8 +181,8 @@ class DockPID:
         self.current_yaw = 0.0
         
         # 停靠误差阈值（和你原有参数一致）
-        self.x_th = 0.03    # x轴误差<2cm
-        self.y_th = 0.03    # y轴误差<2cm
+        self.x_th = 0.04    # x轴误差<2cm
+        self.y_th = 0.04    # y轴误差<2cm
         self.yaw_th = 0.1  # 偏航角误差<0.57°
 
     def _reset_pid_state(self):
@@ -595,7 +595,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.190, rospy.Time.now(),
-                                                kp=1.62, ki=0.008, kd=0.35, max_out=0.45)
+                                                kp=1.60, ki=0.008, kd=0.35, max_out=0.45, min_drive=0.04)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
@@ -610,7 +610,6 @@ class navigation_demo:
                     # 串口发送射击停止指令
                     ser.write(b'\x55\x01\x11\x00\x00\x00\x01\x68')
                     print('y:', ar_y_0)
-                    # 射击后等待2秒，避免机构抖动
                     
                     # 状态机切换到2号靶位状态
                     case = 3
@@ -625,7 +624,7 @@ class navigation_demo:
                     rospy.sleep(1)
                     print(case)
                     # 导航到3号目标点
-                    self.pid_goto(pid_g=3)
+                    #self.pid_goto(pid_g=3)
                     print('导航到3号目标点')    
                     rospy.sleep(2)
             
@@ -678,8 +677,10 @@ class navigation_demo:
 
     
     # ---------- PID 控制 ----------
-    def pid_control(self, error, now, kp=0.05, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1):
-        """简易 PID，返回角速度"""
+    def pid_control(self, error, now, kp=0.05, ki=0.005, kd=0.03, max_out=0.45, max_i=0.1, min_drive=0.0):
+        """简易 PID，返回角速度
+        :param min_drive: 死区补偿最小驱动速度，0 表示不启用
+        """
 
         # 1. dt
         if self._last_time is None:
@@ -701,7 +702,14 @@ class navigation_demo:
         output = -(kp * error + ki * self._integral + kd * derivative)
         output = max(-max_out, min(max_out, output))
 
-        # 5. 保存
+        # 5. 死区补偿：保证输出不低于电机启动所需的最小速度
+        if min_drive > 0:
+            if 0 < output < min_drive:
+                output = min_drive
+            elif -min_drive < output < 0:
+                output = -min_drive
+
+        # 6. 保存
         self._prev_error = error
         self._last_time  = now
 
@@ -897,11 +905,11 @@ if __name__ == "__main__":
         
         # 打击环形靶
         print('pidgoto')
-        navi.pid_goto(pid_g=1)
+        #navi.pid_goto(pid_g=1)
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        #case = 0
+        case = 1
         print('case:', case)
         print('debug mode:射击调试')
 

@@ -595,7 +595,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.190, rospy.Time.now(),
-                                                kp=1.60, ki=0.008, kd=0.35, max_out=0.45)
+                                                kp=1.62, ki=0.008, kd=0.35, max_out=0.45)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')

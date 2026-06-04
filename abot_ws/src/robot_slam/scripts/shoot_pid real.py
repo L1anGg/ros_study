@@ -117,14 +117,14 @@ back_time = 0
 move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
 Yaw_th = 0.09 #0.064
-Yaw_th1 = -0.185
-Yaw_th2 = -0.195
-Yaw_th3 = -0.18
-Yaw_th4 = -0.20
+Yaw_th1 = -0.15
+Yaw_th2 = -0.16
+Yaw_th3 = -0.148
+Yaw_th4 = -0.162
 # AR码Y轴坐标有效范围下限
-Min_y = -0.12 #-0.1
+Min_y = -0.10 #-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = -0.05 #0.1
+Max_y = -0.04 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -590,12 +590,12 @@ class navigation_demo:
                 print('y:', ar_y_0)
 
                 # 偏移量大于阈值，未对准，调整角速度
-                if ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4 :#ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4
+                if ar_x_0 >= Yaw_th1 or ar_x_0 <= Yaw_th2 :#ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
-                    msg.angular.z = self.pid_control(ar_x_0+0.190, rospy.Time.now(),
-                                                kp=1.60, ki=0.008, kd=0.35, max_out=0.45, min_drive=0.04)
+                    msg.angular.z = self.pid_control(ar_x_0 + 0.155, rospy.Time.now(),
+                                                kp=1.65, ki=0.008, kd=0.35, max_out=0.45, min_drive=0.08)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
@@ -646,7 +646,7 @@ class navigation_demo:
                     msg_2 = Twist()
                     # ✅ 原逻辑 kp≈0.6
                     #msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
-                    msg_2.angular.z = self.pid_control(ar_x_0 + 0.190, rospy.Time.now(),
+                    msg_2.angular.z = self.pid_control(ar_x_0 + 0.155, rospy.Time.now(),
                                                   kp=1.60, ki=0.03, kd=0.06, max_out=0.45, max_i=0.4)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
@@ -672,7 +672,7 @@ class navigation_demo:
                     self.yaw_zero()
                     rospy.sleep(1)
                     # 执行终点后退动作
-                    self.end()
+                    #self.end()
                     print('执行终点后退动作')
 
     

@@ -117,14 +117,14 @@ back_time = 0
 move_flog = 0
 # 瞄准偏航角阈值：AR码X轴偏移小于该值，判定为对准
 Yaw_th = 0.09 #0.064
-Yaw_th1 = -0.15
-Yaw_th2 = -0.16
-Yaw_th3 = -0.148
-Yaw_th4 = -0.162
+Yaw_th1 = -0.125
+Yaw_th2 = -0.135
+Yaw_th3 = -0.18
+Yaw_th4 = -0.20
 # AR码Y轴坐标有效范围下限
 Min_y = -0.10 #-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = -0.04 #0.1
+Max_y = -0.05 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -181,8 +181,8 @@ class DockPID:
         self.current_yaw = 0.0
         
         # 停靠误差阈值（和你原有参数一致）
-        self.x_th = 0.04    # x轴误差<2cm
-        self.y_th = 0.04    # y轴误差<2cm
+        self.x_th = 0.03    # x轴误差<2cm
+        self.y_th = 0.03    # y轴误差<2cm
         self.yaw_th = 0.1  # 偏航角误差<0.57°
 
     def _reset_pid_state(self):
@@ -567,7 +567,7 @@ class navigation_demo:
         msg.linear.x = 0
         self.pub.publish(msg)
         #终点停靠，使用PID实现精准停靠（可选，视实际需求调整）
-        self.dock_pid.precise_dock(target_x=0, target_y=self.current_y, target_yaw_deg=0.00)
+        self.dock_pid.precise_dock(target_x=0, target_y=3.40, target_yaw_deg=0.00)
       
     # AR码识别回调函数：核心瞄准逻辑，根据AR码坐标调整机器人姿态，对准后执行射击
     def ar_cb(self, data):
@@ -594,7 +594,7 @@ class navigation_demo:
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
-                    msg.angular.z = self.pid_control(ar_x_0 + 0.155, rospy.Time.now(),
+                    msg.angular.z = self.pid_control(ar_x_0+0.130, rospy.Time.now(),
                                                 kp=1.65, ki=0.008, kd=0.35, max_out=0.45, min_drive=0.08)
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
@@ -624,7 +624,7 @@ class navigation_demo:
                     rospy.sleep(1)
                     print(case)
                     # 导航到3号目标点
-                    #self.pid_goto(pid_g=3)
+                    self.pid_goto(pid_g=3)
                     print('导航到3号目标点')    
                     rospy.sleep(2)
             
@@ -646,8 +646,8 @@ class navigation_demo:
                     msg_2 = Twist()
                     # ✅ 原逻辑 kp≈0.6
                     #msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
-                    msg_2.angular.z = self.pid_control(ar_x_0 + 0.155, rospy.Time.now(),
-                                                  kp=1.60, ki=0.03, kd=0.06, max_out=0.45, max_i=0.4)
+                    msg_2.angular.z = self.pid_control(ar_x_0 + 0.130, rospy.Time.now(),
+                                                  kp=1.65, ki=0.03, kd=0.06, max_out=0.45, max_i=0.4, min_drive=0.08)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
@@ -672,7 +672,7 @@ class navigation_demo:
                     self.yaw_zero()
                     rospy.sleep(1)
                     # 执行终点后退动作
-                    #self.end()
+                    self.end()
                     print('执行终点后退动作')
 
     
@@ -905,11 +905,11 @@ if __name__ == "__main__":
         
         # 打击环形靶
         print('pidgoto')
-        #navi.pid_goto(pid_g=1)
+        navi.pid_goto(pid_g=1)
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        case = 1
+        #case = 2
         print('case:', case)
         print('debug mode:射击调试')
 

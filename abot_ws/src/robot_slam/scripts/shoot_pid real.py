@@ -119,12 +119,12 @@ move_flog = 0
 Yaw_th = 0.09 #0.064
 Yaw_th1 = -0.125
 Yaw_th2 = -0.135
-Yaw_th3 = -0.18
-Yaw_th4 = -0.20
+Yaw_th3 = -0.105
+Yaw_th4 = -0.115
 # AR码Y轴坐标有效范围下限
 Min_y = -0.10 #-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = -0.05 #0.1
+Max_y = -0.06 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -181,8 +181,8 @@ class DockPID:
         self.current_yaw = 0.0
         
         # 停靠误差阈值（和你原有参数一致）
-        self.x_th = 0.03    # x轴误差<2cm
-        self.y_th = 0.03    # y轴误差<2cm
+        self.x_th = 0.02    # x轴误差<2cm
+        self.y_th = 0.02    # y轴误差<2cm
         self.yaw_th = 0.1  # 偏航角误差<0.57°
 
     def _reset_pid_state(self):
@@ -370,8 +370,8 @@ class navigation_demo:
 
 
 
-    #x方向上的速度发布函数
-    def goto_x(self,set):
+    # x方向上的速度发布函数（加速版：0.35→0.55m/s，3.0s→1.9s）
+    def goto_x(self, set, speed=0.55, duration=19):
             global back_time
             msg_s = Twist()
             msg_s.angular.z = 0.0
@@ -379,12 +379,12 @@ class navigation_demo:
             msg = Twist()
             # X轴线速度
             if set == 'on':
-                msg.linear.x = 0.35
+                msg.linear.x = speed
             elif set == 'down':
-                msg.linear.x = -0.35
+                msg.linear.x = -speed
             msg.linear.y = 0
             back_time = 0
-            while(back_time <= 30):
+            while(back_time <= duration):
                 self.pub.publish(msg)
                  # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -394,8 +394,8 @@ class navigation_demo:
             msg.linear.x = 0
             self.pub.publish(msg)
 
-    #y方向上的速度发布函数
-    def goto_y(self,set):          
+    # y方向上的速度发布函数（加速版：0.42→0.65m/s，3.1s→2.0s）
+    def goto_y(self, set, speed=0.65, duration=23):
             global back_time
             msg_s = Twist()
             msg_s.angular.z = 0.0
@@ -403,18 +403,17 @@ class navigation_demo:
             msg = Twist()
             # Y轴线速度
             if set == 'on':
-                msg.linear.y = 0.42
+                msg.linear.y = speed
             elif set == 'down':
-                msg.linear.y = -0.42
+                msg.linear.y = -speed
             # Z轴线速度：置0
             msg.linear.z = 0.0
             # 三个轴的角速度全部置0，仅平移运动
             msg.angular.x = 0.0
             msg.angular.y = 0.0
             msg.angular.z = 0.0
-            # 循环发布速度指令，总时长15*0.1=1.5秒
             back_time = 0
-            while(back_time <= 30.4):
+            while(back_time <= duration):
                 self.pub.publish(msg)
                 # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
@@ -423,45 +422,37 @@ class navigation_demo:
             msg.linear.y = 0
             msg.linear.x = 0
             self.pub.publish(msg)
-            
-    #简易前往目标点函数  rosrun tf tf_echo /map /base_footprint
-    #x1.15,y30    y1.2    y1.2
-    def pid_goto(self,pid_g):
+
+    # 简易前往目标点函数（加速版）
+    def pid_goto(self, pid_g):
         global case
-        #直接发布速度话题到达目标点1
+        # ---- pid_g=1: 到达目标点1 ----
         if pid_g == 1:
             print('start pidgoto')
             global back_time
-            # 初始化速度控制消息
             msg = Twist()
-
             msg_s = Twist()
             msg_s.angular.z = 0.0
-            # 发布速度指令
             self.pub.publish(msg_s)
 
-            # Y轴线速度
-            msg.linear.y = -0.3
-            # Z轴线速度：置0
+            # Y轴横移：0.3→0.5m/s，1.0s→0.6s，保持约0.3m行程
+            msg.linear.y = -0.5
             msg.linear.z = 0.0
-            # 三个轴的角速度全部置0，仅平移运动
             msg.angular.x = 0.0
             msg.angular.y = 0.0
             msg.angular.z = 0.0
-            # 循环发布速度指令，总时长15*0.1=1.5秒
-            while(back_time <= 10):
+            back_time = 0
+            while(back_time <= 6):
                 self.pub.publish(msg)
-                # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
                 back_time = back_time + 1
         
-            # X轴线速度
-            msg.linear.x = 0.35
+            # X轴前进：0.35→0.55m/s，3.35s→2.1s，保持约1.17m行程
+            msg.linear.x = 0.55
             msg.linear.y = 0
             back_time = 0
-            while(back_time <= 33.5):
+            while(back_time <= 21):
                 self.pub.publish(msg)
-                # 休眠0.1秒，控制发布频率
                 rospy.sleep(0.1)
                 back_time = back_time + 1
 
@@ -472,12 +463,8 @@ class navigation_demo:
             self.dock_pid.precise_dock(target_x=1.21, target_y=-0.37, target_yaw_deg=0)
             rospy.sleep(0.5)
             case = 0
-            #navi.pid_goto(pid_g=2)
-            #return True
 
-
-        #pid_g=2
-        #直接发布速度话题到达目标点2
+        # ---- pid_g=2: 到达目标点2 ----
         if pid_g == 2:
             print('start pidgoto')
             self.goto_x('down')
@@ -485,25 +472,19 @@ class navigation_demo:
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
             self.dock_pid.precise_dock(target_x=1.21, target_y=-1.67, target_yaw_deg=0.00)
-            
             rospy.sleep(0.5)
             case = 1
-            #navi.pid_goto(pid_g=3)
-            #return True
 
-        #pid_g=3
+        # ---- pid_g=3: 到达目标点3 ----
         if pid_g == 3:
             print('start pidgoto')
             self.goto_x('down')
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.94, target_yaw_deg=0.00)
-            
-            #return True
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.95, target_yaw_deg=0.00)
             rospy.sleep(0.5)
             case = 2
-            #self.end()
 
 
     def yaw_zero(self):
@@ -553,11 +534,11 @@ class navigation_demo:
             # 休眠0.1秒，控制发布频率
             rospy.sleep(0.1)
             back_time = back_time + 1
-        # X轴线速度：后退0.3m/s
-        msg.linear.x = -0.3
+        # X轴线速度：后退 0.3→0.55m/s，3.7s→2.2s，保持约1.1m行程
+        msg.linear.x = -0.55
         msg.linear.y = 0
         back_time = 0
-        while(back_time <= 36):
+        while(back_time <= 21):
             self.pub.publish(msg)
             # 休眠0.1秒，控制发布频率
             rospy.sleep(0.1)
@@ -567,7 +548,7 @@ class navigation_demo:
         msg.linear.x = 0
         self.pub.publish(msg)
         #终点停靠，使用PID实现精准停靠（可选，视实际需求调整）
-        self.dock_pid.precise_dock(target_x=0, target_y=3.40, target_yaw_deg=0.00)
+        self.dock_pid.precise_dock(target_x=0, target_y=-3.40, target_yaw_deg=0.00)
       
     # AR码识别回调函数：核心瞄准逻辑，根据AR码坐标调整机器人姿态，对准后执行射击
     def ar_cb(self, data):
@@ -590,12 +571,12 @@ class navigation_demo:
                 print('y:', ar_y_0)
 
                 # 偏移量大于阈值，未对准，调整角速度
-                if ar_x_0 >= Yaw_th1 or ar_x_0 <= Yaw_th2 :#ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4
+                if ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4 :#ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4
                     # 初始化速度消息
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
-                    msg.angular.z = self.pid_control(ar_x_0+0.130, rospy.Time.now(),
-                                                kp=1.65, ki=0.008, kd=0.35, max_out=0.45, min_drive=0.08)
+                    msg.angular.z = self.pid_control(ar_x_0+0.110, rospy.Time.now(),
+                                                kp=4.2, ki=0.03, kd=0.15, max_out=0.8, min_drive=0.08)#偏右调小0.110
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
@@ -642,19 +623,19 @@ class navigation_demo:
                 print('z:', ar_z_0)
                 
                 # 未对准，调整旋转角速度
-                if ar_x_0 >= Yaw_th1 or ar_x_0 <= Yaw_th2:
+                if ar_x_0 >= Yaw_th3 or ar_x_0 <= Yaw_th4:
                     msg_2 = Twist()
                     # ✅ 原逻辑 kp≈0.6
                     #msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
-                    msg_2.angular.z = self.pid_control(ar_x_0 + 0.130, rospy.Time.now(),
-                                                  kp=1.65, ki=0.03, kd=0.06, max_out=0.45, max_i=0.4, min_drive=0.08)
+                    msg_2.angular.z = self.pid_control(ar_x_0 + 0.110, rospy.Time.now(),
+                                                  kp=3.5, ki=0.040, kd=0.10, max_out=0.8, max_i=0.4)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
                     print('瞄准中')
 
                 # 对准完成，执行射击
-                elif ar_x_0 < Yaw_th1 and ar_x_0 > Yaw_th2:
+                elif ar_x_0 < Yaw_th3 and ar_x_0 > Yaw_th4:
                     # 串口发送射击启动指令
                     ser.write(b'\x55\x01\x12\x00\x00\x00\x01\x69')
                     print("发射[可惜兄弟]")
@@ -909,7 +890,7 @@ if __name__ == "__main__":
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        #case = 2
+        #case = 1
         print('case:', case)
         print('debug mode:射击调试')
 

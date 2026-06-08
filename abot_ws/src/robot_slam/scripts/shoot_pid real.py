@@ -482,7 +482,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.95, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.97, target_yaw_deg=0.00)
             rospy.sleep(0.5)
             case = 2
 
@@ -576,7 +576,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.110, rospy.Time.now(),
-                                                kp=4.2, ki=0.03, kd=0.15, max_out=0.8, min_drive=0.08)#偏右调小0.110
+                                                kp=4.6, ki=0.03, kd=0.15, max_out=0.8, min_drive=0.08)#偏右调小0.110
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
@@ -605,7 +605,7 @@ class navigation_demo:
                     rospy.sleep(1)
                     print(case)
                     # 导航到3号目标点
-                    self.pid_goto(pid_g=3)
+                    #self.pid_goto(pid_g=3)
                     print('导航到3号目标点')    
                     rospy.sleep(2)
             
@@ -628,7 +628,7 @@ class navigation_demo:
                     # ✅ 原逻辑 kp≈0.6
                     #msg_2.angular.z = max(-0.3, min(0.3, -0.8 * ar_x_0))
                     msg_2.angular.z = self.pid_control(ar_x_0 + 0.110, rospy.Time.now(),
-                                                  kp=3.5, ki=0.040, kd=0.10, max_out=0.8, max_i=0.4)
+                                                  kp=4.0, ki=0.040, kd=0.12, max_out=0.8, max_i=0.4)
                     #print(msg_2.angular.z)
                     #print(ar_x_0_abs)
                     self.pub.publish(msg_2)
@@ -794,9 +794,7 @@ if __name__ == "__main__":
     # 解析参数，拼接成目标点列表，每个元素为[x, y, yaw]
     #goals = [[float(x), float(y), float(yaw)] for (x, y, yaw) in zip(goalListX.split(","),goalListY.split(","),goalListYaw.split(","))]
     
-    # 等待用户输入确认，启动程序
-    print('输入1开始: ')
-    input = raw_input()
+
     # 打印解析后的目标点列表
     #print(goals)
     
@@ -872,25 +870,30 @@ if __name__ == "__main__":
 
         print('识别到旋转靶id:'+str(rotating_id)+', 识别到移动靶id:'+str(moving_id))
 
+    # 语音识别打击目标  
+    #publish_audio()
+    #rospy.Subscriber("recognized_text", String, listen_callback)
+    #rospy.sleep(10)
 
     # 实例化导航类
     navi = navigation_demo()
     navi.set_pose(initial_pose)
     rospy.sleep(2)  # 等待位姿生效
+
+    # 等待用户输入确认，启动程序
+    print('输入1开始: ')
+    input = raw_input()
+
     if input == '1':
-        # 语音识别打击目标
-        
-        #publish_audio()
-        #rospy.Subscriber("recognized_text", String, listen_callback)
-        #rospy.sleep(10)
+
         
         # 打击环形靶
         print('pidgoto')
-        navi.pid_goto(pid_g=1)
+        #navi.pid_goto(pid_g=1)
         rospy.sleep(2)
 
         # 初始化状态机为0号初始状态
-        #case = 1
+        case = 1
         print('case:', case)
         print('debug mode:射击调试')
 

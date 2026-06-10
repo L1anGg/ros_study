@@ -122,9 +122,9 @@ Yaw_th2 = -0.135
 Yaw_th3 = -0.105
 Yaw_th4 = -0.115
 # AR码Y轴坐标有效范围下限
-Min_y = -0.10 #-0.1
+Min_y = -0.04#-0.1
 # AR码Y轴坐标有效范围上限
-Max_y = -0.06 #0.1
+Max_y = 0.01 #0.1
 # AR码识别状态标志
 ar_flog=255
 # ---------------------- 核心状态机变量 ----------------------
@@ -152,11 +152,11 @@ class DockPID:
         self.cmd_vel_pub = cmd_vel_pub
         
         # PID参数配置（和你原有参数完全一致）
-        self.kp_x = 0.45    # x轴比例系数
+        self.kp_x = 0.5    # x轴比例系数
         self.ki_x = 0.01   # x轴积分系数
         self.kd_x = 0.1    # x轴微分系数
         
-        self.kp_y = 0.45    # y轴比例系数
+        self.kp_y = 0.5    # y轴比例系数
         self.ki_y = 0.01   # y轴积分系数
         self.kd_y = 0.1    # y轴微分系数
         
@@ -460,9 +460,10 @@ class navigation_demo:
             msg.linear.x = 0
             self.pub.publish(msg)
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.21, target_y=-0.37, target_yaw_deg=0)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-0.36, target_yaw_deg=0)
             rospy.sleep(0.5)
-            case = 0
+            self.pid_goto(pid_g=2)
+            #case = 0
 
         # ---- pid_g=2: 到达目标点2 ----
         if pid_g == 2:
@@ -471,7 +472,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.21, target_y=-1.67, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-1.66, target_yaw_deg=0.00)
             rospy.sleep(0.5)
             case = 1
 
@@ -482,7 +483,7 @@ class navigation_demo:
             self.goto_y('down')
             self.goto_x('on')
             print(self.current_x, self.current_y, self.current_yaw)
-            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.97, target_yaw_deg=0.00)
+            self.dock_pid.precise_dock(target_x=1.21, target_y=-2.96, target_yaw_deg=0.00)
             rospy.sleep(0.5)
             case = 2
 
@@ -548,7 +549,7 @@ class navigation_demo:
         msg.linear.x = 0
         self.pub.publish(msg)
         #终点停靠，使用PID实现精准停靠（可选，视实际需求调整）
-        self.dock_pid.precise_dock(target_x=0, target_y=-3.40, target_yaw_deg=0.00)
+        self.dock_pid.precise_dock(target_x=0, target_y=-3.42, target_yaw_deg=0.00)
       
     # AR码识别回调函数：核心瞄准逻辑，根据AR码坐标调整机器人姿态，对准后执行射击
     def ar_cb(self, data):
@@ -576,7 +577,7 @@ class navigation_demo:
                     msg = Twist()
                     # 角速度与X偏移量成反比，实现闭环对准（偏移越大，转得越快）
                     msg.angular.z = self.pid_control(ar_x_0+0.110, rospy.Time.now(),
-                                                kp=4.6, ki=0.03, kd=0.15, max_out=0.8, min_drive=0.08)#偏右调小0.110
+                                                kp=4.8, ki=0.030, kd=0.15, max_out=0.8, min_drive=0.08)#偏右调小0.110
                     # 发布速度指令，控制机器人旋转
                     self.pub.publish(msg)
                     print('瞄准中')
